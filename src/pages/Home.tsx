@@ -19,7 +19,6 @@ export default function Home() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
   const [searchQuery, setSearchQuery] = useState('');
-  const [addMode, setAddMode] = useState<'search' | 'manual'>('search');
   const [selectedItem, setSelectedItem] = useState<Ingredient | null>(null);
   const [quantity, setQuantity] = useState('100');
   const [unit, setUnit] = useState('克');
