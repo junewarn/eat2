@@ -19,11 +19,16 @@ jobs:
           node-version: '24'
           check-latest: true
 
-      - name: Verify Node.js version
-        run: node --version && npm --version
+      - name: Debug info
+        run: |
+          which node
+          which npm
+          node --version
+          npm --version
+          echo "PATH: $PATH"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build
         run: npm run build
