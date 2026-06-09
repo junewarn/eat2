@@ -22,6 +22,8 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<Ingredient | null>(null);
   const [quantity, setQuantity] = useState('100');
   const [unit, setUnit] = useState('克');
+  const [ingredientSearch, setIngredientSearch] = useState('');
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const today = new Date();
   const dateStr = `${today.getMonth() + 1}月${today.getDate()}日`;
@@ -39,9 +41,6 @@ export default function Home() {
   );
 
   const getProgress = (current: number, goal: number) => Math.min((current / goal) * 100, 100);
-
-  const [ingredientSearch, setIngredientSearch] = useState('');
-  const [showAIModal, setShowAIModal] = useState(false);
 
   const filteredIngredients = ingredients.filter(
     i => i.name.toLowerCase().includes(ingredientSearch.toLowerCase()) ||
