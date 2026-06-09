@@ -22,7 +22,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/eat2">
       <Routes>
         <Route 
           path="/welcome" 
