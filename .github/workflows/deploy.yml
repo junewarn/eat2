@@ -9,6 +9,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -29,8 +33,12 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          force_orphan: true
