@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rename existing page</title>
+  <script>
+    // Single-Page Application (SPA) 404 Redirect
+    // Redirects all paths to the index.html with the original path preserved as a hash
+    // This allows the client-side router to handle the navigation
+    const handleRedirect = () => {
+      const path = location.pathname;
+      // Use hash-based routing to preserve the original path
+      location.href = '/' + path;
+    };
+    handleRedirect();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>
