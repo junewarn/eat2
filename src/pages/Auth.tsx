@@ -12,28 +12,60 @@ export default function Auth() {
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
     
-    const userData = {
-      id: 'user_' + Date.now(),
-      name: activeTab === 'register' ? formData.name : formData.email.split('@')[0],
-      email: formData.email,
-      isGuest: false,
-      height: 175,
-      weight: 70,
-      age: 28,
-      gender: 'male',
-      activityLevel: 'moderate',
-      goal: 'lose',
-      targetWeight: 65,
-      dietaryPreferences: [],
-    };
-    
-    localStorage.setItem('diet_user', JSON.stringify(userData));
-    navigate('/');
+    try {
+      const endpoint = activeTab === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const response = await fetch(`${apiUrl}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          username: formData.name,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || '登录失败');
+      }
+
+      const userData = {
+        id: data.user.id.toString(),
+        name: data.user.username,
+        email: data.user.email,
+        isGuest: data.user.isGuest || false,
+        height: 175,
+        weight: 70,
+        age: 28,
+        gender: 'male' as const,
+        activityLevel: 'moderate' as const,
+        goal: 'lose' as const,
+        targetWeight: 65,
+        dietaryPreferences: [],
+        token: data.token,
+      };
+
+      localStorage.setItem('diet_user', JSON.stringify(userData));
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '发生错误');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -130,11 +162,16 @@ export default function Auth() {
               </div>
             </div>
 
+            {error && (
+              <div className="text-red-500 text-sm mt-2">{error}</div>
+            )}
+
             <button
               type="submit"
-              className="w-full btn-primary mt-6"
+              disabled={loading}
+              className="w-full btn-primary mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {activeTab === 'login' ? '登录' : '注册'}
+              {loading ? '处理中...' : (activeTab === 'login' ? '登录' : '注册')}
             </button>
           </form>
 
