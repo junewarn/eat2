@@ -19,7 +19,6 @@ jobs:
           node-version: 24
 
       - name: Debug - Show environment
-        working-directory: frontend
         run: |
           echo "=== Node.js version ==="
           node --version
@@ -31,15 +30,13 @@ jobs:
           ls -la
 
       - name: Install dependencies
-        working-directory: frontend
         run: npm ci
 
       - name: Build project
-        working-directory: frontend
         run: npm run build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/dist
+          publish_dir: ./dist
