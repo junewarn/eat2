@@ -9,6 +9,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -29,23 +32,14 @@ jobs:
           echo "=== Directory contents ==="
           ls -la
 
-      - name: Debug - Install dependencies
-        run: |
-          echo "=== Installing dependencies ==="
-          npm ci 2>&1 || { echo "npm ci failed"; exit 1; }
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Debug - Build project
-        run: |
-          echo "=== Building project ==="
-          npm run build 2>&1 || { echo "npm run build failed"; exit 1; }
-
-      - name: Debug - Show dist
-        run: |
-          echo "=== Dist directory ==="
-          ls -la dist/
+      - name: Build project
+        run: npm run build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: frontend/dist
