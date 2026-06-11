@@ -1,12 +1,29 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, User, Dumbbell, Settings } from 'lucide-react';
 import type { User as UserType } from '../types';
 
 export default function Onboarding() {
-  const { step } = useParams<{ step: string }>();
+  const params = useParams<{ step?: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
-  const currentStep = parseInt(step || '1');
+  
+  // 从 URL 路径或 search params 获取 step
+  let currentStep = 1;
+  if (params.step) {
+    currentStep = parseInt(params.step, 10);
+  } else {
+    // 尝试从路径中提取 step
+    const pathParts = location.pathname.split('/');
+    const stepIndex = pathParts.indexOf('step');
+    if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
+      currentStep = parseInt(pathParts[stepIndex + 1], 10);
+    }
+  }
+  
+  if (isNaN(currentStep) || currentStep < 1 || currentStep > 3) {
+    currentStep = 1;
+  }
 
   const [formData, setFormData] = useState({
     height: '',
