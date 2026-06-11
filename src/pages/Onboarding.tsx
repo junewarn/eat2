@@ -91,8 +91,11 @@ export default function Onboarding() {
   const preferences = ['素食', '清真', '无乳糖', '无麸质', '低碳水', '高蛋白'];
 
   const handleNext = () => {
+    console.log('handleNext called, currentStep:', currentStep);
     if (currentStep < 3) {
-      navigate(`/onboarding/step${currentStep + 1}`);
+      const nextPath = `/onboarding/step${currentStep + 1}`;
+      console.log('Navigating to:', nextPath);
+      navigate(nextPath);
     } else {
       // 获取现有用户信息
       const user = localStorage.getItem('diet_user');
@@ -112,7 +115,9 @@ export default function Onboarding() {
         hasProfile: true, // 标记已完成个人信息填写
       };
 
+      console.log('Saving user data:', updatedUserData);
       localStorage.setItem('diet_user', JSON.stringify(updatedUserData));
+      console.log('Navigating to /');
       navigate('/');
     }
   };
@@ -324,7 +329,10 @@ export default function Onboarding() {
       <div className="max-w-md mx-auto p-4">
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={handlePrev}
+            onClick={() => {
+              console.log('handlePrev called, currentStep:', currentStep);
+              handlePrev();
+            }}
             disabled={currentStep === 1}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -373,7 +381,10 @@ export default function Onboarding() {
         </div>
 
         <button
-          onClick={handleNext}
+          onClick={() => {
+            console.log('Next button clicked');
+            handleNext();
+          }}
           className="w-full btn-primary flex items-center justify-center gap-2"
         >
           {currentStep === 3 ? '完成设置' : '下一步'}
