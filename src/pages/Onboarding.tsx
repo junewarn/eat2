@@ -29,8 +29,9 @@ export default function Onboarding() {
       step = 1;
     }
     
+    console.log('onboarding step changed to:', step, 'params:', params.step, 'path:', location.pathname);
     setCurrentStep(step);
-  }, [params.step, location.pathname]);
+  }, [params.step, location.pathname, location.key]);
 
   const [formData, setFormData] = useState({
     height: '',
