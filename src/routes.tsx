@@ -22,11 +22,11 @@ function AppRoutes() {
   return (
     <BrowserRouter basename="/eat2">
       <Routes>
+        {/* 个人信息填写 - 必须在 Home 之前定义，优先匹配 */}
+        <Route path="/onboarding/step:step" element={<Onboarding />} />
+        
         {/* 首页：显示登录/注册/游客登录 */}
         <Route path="/" element={<Home />} />
-        
-        {/* 个人信息填写 */}
-        <Route path="/onboarding/step:step" element={<Onboarding />} />
         
         {/* 受保护的页面 */}
         <Route 
