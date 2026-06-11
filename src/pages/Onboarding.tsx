@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, User, Dumbbell, Settings } from 'lucide-react';
 import type { User as UserType } from '../types';
@@ -19,17 +19,52 @@ export default function Onboarding() {
     dietaryPreferences: [] as string[],
   });
 
+  // 从 localStorage 加载用户已有信息
+  useEffect(() => {
+    const user = localStorage.getItem('diet_user');
+    if (user) {
+      const userData = JSON.parse(user);
+      // 如果用户已经有部分信息，加载它
+      if (userData.height && userData.height !== 0) {
+        setFormData(prev => ({ ...prev, height: userData.height.toString() }));
+      }
+      if (userData.weight && userData.weight !== 0) {
+        setFormData(prev => ({ ...prev, weight: userData.weight.toString() }));
+      }
+      if (userData.age && userData.age !== 0) {
+        setFormData(prev => ({ ...prev, age: userData.age.toString() }));
+      }
+      if (userData.gender) {
+        setFormData(prev => ({ ...prev, gender: userData.gender }));
+      }
+      if (userData.activityLevel) {
+        setFormData(prev => ({ ...prev, activityLevel: userData.activityLevel }));
+      }
+      if (userData.goal) {
+        setFormData(prev => ({ ...prev, goal: userData.goal }));
+      }
+      if (userData.targetWeight && userData.targetWeight !== 0) {
+        setFormData(prev => ({ ...prev, targetWeight: userData.targetWeight.toString() }));
+      }
+      if (userData.dietaryPreferences && userData.dietaryPreferences.length > 0) {
+        setFormData(prev => ({ ...prev, dietaryPreferences: userData.dietaryPreferences }));
+      }
+    }
+  }, []);
+
   const preferences = ['素食', '清真', '无乳糖', '无麸质', '低碳水', '高蛋白'];
 
   const handleNext = () => {
     if (currentStep < 3) {
       navigate(`/onboarding/step${currentStep + 1}`);
     } else {
-      const user: UserType = {
-        id: 'guest_user',
-        name: '访客用户',
-        email: 'guest@example.com',
-        isGuest: true,
+      // 获取现有用户信息
+      const user = localStorage.getItem('diet_user');
+      const existingUserData = user ? JSON.parse(user) : {};
+
+      // 更新用户信息，保留 id、token 等其他字段
+      const updatedUserData = {
+        ...existingUserData,
         height: parseInt(formData.height) || 175,
         weight: parseInt(formData.weight) || 70,
         age: parseInt(formData.age) || 28,
@@ -38,8 +73,10 @@ export default function Onboarding() {
         goal: formData.goal,
         targetWeight: parseInt(formData.targetWeight) || 65,
         dietaryPreferences: formData.dietaryPreferences,
+        hasProfile: true, // 标记已完成个人信息填写
       };
-      localStorage.setItem('diet_user', JSON.stringify(user));
+
+      localStorage.setItem('diet_user', JSON.stringify(updatedUserData));
       navigate('/');
     }
   };

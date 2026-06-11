@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Camera, Plus, Trash2, Edit3, Leaf, UtensilsCrossed, History, Settings, Sun, Moon, Coffee, Apple, X } from 'lucide-react';
+import { Search, Camera, Plus, Trash2, Edit3, Leaf, UtensilsCrossed, History, Settings, Sun, Moon, Coffee, Apple, X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { mockDailyGoals, mockMealRecords } from '../data/mockData';
 import { recipes } from '../data/recipes';
 import { ingredients } from '../data/ingredients';
 import type { MealRecord, MealType, Ingredient } from '../types';
+
+type AuthTab = 'login' | 'register' | 'guest';
 
 const mealConfig: { type: MealType; label: string; icon: typeof Sun; time: string }[] = [
   { type: 'breakfast', label: '早餐', icon: Sun, time: '06:00 - 09:00' },
@@ -15,6 +17,331 @@ const mealConfig: { type: MealType; label: string; icon: typeof Sun; time: strin
 
 export default function Home() {
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeAuthTab, setActiveAuthTab] = useState<AuthTab>('login');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authFormData, setAuthFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  // 检查是否已登录
+  useEffect(() => {
+    const user = localStorage.getItem('diet_user');
+    if (user) {
+      const userData = JSON.parse(user);
+      // 检查是否有完整个人信息
+      if (userData.hasProfile) {
+        setIsAuthenticated(true);
+      } else {
+        // 已登录但未填写个人信息，跳转到onboarding
+        navigate('/onboarding/step1');
+      }
+    }
+  }, [navigate]);
+
+  // 已认证后的主页状态
+  if (isAuthenticated) {
+    return <HomeContent navigate={navigate} />;
+  }
+
+  // 未认证时显示登录/注册/游客登录
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Leaf className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-3">减脂饮食记录</h1>
+          <p className="text-gray-500">科学管理饮食，健康享受生活</p>
+        </div>
+
+        <div className="bg-white rounded-card p-6 card-shadow">
+          {/* Tab切换 */}
+          <div className="flex mb-6">
+            <button
+              onClick={() => { setActiveAuthTab('login'); setAuthError(''); }}
+              className={`flex-1 py-3 font-medium transition-colors duration-200 ${
+                activeAuthTab === 'login'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'
+              }`}
+            >
+              登录
+            </button>
+            <button
+              onClick={() => { setActiveAuthTab('register'); setAuthError(''); }}
+              className={`flex-1 py-3 font-medium transition-colors duration-200 ${
+                activeAuthTab === 'register'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'
+              }`}
+            >
+              注册
+            </button>
+            <button
+              onClick={() => { setActiveAuthTab('guest'); setAuthError(''); }}
+              className={`flex-1 py-3 font-medium transition-colors duration-200 ${
+                activeAuthTab === 'guest'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-500 border-b-2 border-transparent hover:text-gray-700'
+              }`}
+            >
+              游客
+            </button>
+          </div>
+
+          {/* 登录表单 */}
+          {activeAuthTab === 'login' && (
+            <form
+              onSubmit={(e) => handleAuth(e, 'login', navigate, setAuthError, setAuthLoading, setAuthFormData, setActiveAuthTab, setIsAuthenticated)}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    value={authFormData.email}
+                    onChange={(e) => setAuthFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="请输入邮箱"
+                    className="input-field pl-12"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={authFormData.password}
+                    onChange={(e) => setAuthFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="请输入密码"
+                    className="input-field pl-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {authError && <div className="text-red-500 text-sm">{authError}</div>}
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {authLoading ? '处理中...' : '登录'}
+              </button>
+            </form>
+          )}
+
+          {/* 注册表单 */}
+          {activeAuthTab === 'register' && (
+            <form
+              onSubmit={(e) => handleAuth(e, 'register', navigate, setAuthError, setAuthLoading, setAuthFormData, setActiveAuthTab, setIsAuthenticated)}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">用户名</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    required
+                    value={authFormData.name}
+                    onChange={(e) => setAuthFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="请输入用户名"
+                    className="input-field pl-12"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">邮箱</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    value={authFormData.email}
+                    onChange={(e) => setAuthFormData(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="请输入邮箱"
+                    className="input-field pl-12"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">密码</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={authFormData.password}
+                    onChange={(e) => setAuthFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="请输入密码"
+                    className="input-field pl-12 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {authError && <div className="text-red-500 text-sm">{authError}</div>}
+
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {authLoading ? '处理中...' : '注册'}
+              </button>
+
+              <p className="text-center text-gray-500 text-sm">
+                已有账号？{' '}
+                <button
+                  onClick={() => setActiveAuthTab('login')}
+                  className="text-primary hover:text-primary/80"
+                >
+                  立即登录
+                </button>
+              </p>
+            </form>
+          )}
+
+          {/* 游客登录 */}
+          {activeAuthTab === 'guest' && (
+            <div className="space-y-4">
+              <div className="text-center text-gray-600 mb-6">
+                <p>游客模式仅保存在本地浏览器中</p>
+                <p className="text-sm text-gray-400 mt-2">无需注册，即可开始记录饮食</p>
+              </div>
+
+              <button
+                onClick={() => handleGuestLogin(navigate, setIsAuthenticated)}
+                className="w-full bg-white border-2 border-gray-200 text-gray-600 px-6 py-4 rounded-card font-medium flex items-center justify-center gap-3 hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200"
+              >
+                <User className="w-5 h-5" />
+                <span>以游客身份开始</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p className="text-center text-gray-400 text-sm mt-6">
+          登录后需完善个人信息以便为您提供个性化服务
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// 登录/注册处理函数
+function handleAuth(
+  e: React.FormEvent,
+  type: 'login' | 'register',
+  navigate: (path: string) => void,
+  setAuthError: (error: string) => void,
+  setAuthLoading: (loading: boolean) => void,
+  setAuthFormData: (data: { name: string; email: string; password: string }) => void,
+  setActiveAuthTab: (tab: AuthTab) => void,
+  setIsAuthenticated: (auth: boolean) => void
+) {
+  e.preventDefault();
+  setAuthError('');
+  setAuthLoading(true);
+
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+  const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/register';
+  fetch(`${apiUrl}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: authFormData.email,
+      password: authFormData.password,
+      username: authFormData.name,
+    }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data || !data.user) {
+        throw new Error(data.error || (type === 'login' ? '登录失败' : '注册失败'));
+      }
+
+      const userData = {
+        id: data.user.id.toString(),
+        name: data.user.username || authFormData.name,
+        email: data.user.email,
+        isGuest: false,
+        height: 0,
+        weight: 0,
+        age: 0,
+        gender: 'male' as const,
+        activityLevel: 'moderate' as const,
+        goal: 'lose' as const,
+        targetWeight: 65,
+        dietaryPreferences: [],
+        hasProfile: false,
+        token: data.token,
+      };
+
+      localStorage.setItem('diet_user', JSON.stringify(userData));
+      setIsAuthenticated(true);
+      navigate('/onboarding/step1');
+    })
+    .catch(err => {
+      setAuthError(err instanceof Error ? err.message : '发生错误');
+    })
+    .finally(() => {
+      setAuthLoading(false);
+    });
+}
+
+// 游客登录
+function handleGuestLogin(navigate: (path: string) => void, setIsAuthenticated: (auth: boolean) => void) {
+  localStorage.setItem('diet_user', JSON.stringify({
+    id: 'guest_user',
+    name: '访客用户',
+    email: 'guest@example.com',
+    isGuest: true,
+    height: 0,
+    weight: 0,
+    age: 0,
+    gender: 'male',
+    activityLevel: 'moderate',
+    goal: 'lose',
+    targetWeight: 65,
+    dietaryPreferences: [],
+    hasProfile: false,
+  }));
+  setIsAuthenticated(true);
+  navigate('/onboarding/step1');
+}
+
+// 主页内容组件
+function HomeContent({ navigate }: { navigate: (path: string) => void }) {
   const [records, setRecords] = useState<MealRecord[]>(mockMealRecords);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<MealType>('breakfast');
