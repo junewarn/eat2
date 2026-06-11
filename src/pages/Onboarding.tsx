@@ -28,13 +28,30 @@ export default function Onboarding() {
   const [formData, setFormData] = useState({
     height: '',
     weight: '',
-    age: '',
+    birthYear: '',
+    birthMonth: '',
+    birthDay: '',
     gender: 'male' as 'male' | 'female',
     activityLevel: 'moderate' as 'sedentary' | 'light' | 'moderate' | 'active',
     goal: 'lose' as 'lose' | 'maintain' | 'gain',
     targetWeight: '',
     dietaryPreferences: [] as string[],
   });
+
+  // 根据出生年月日计算年龄
+  const calculateAge = (year: string, month: string, day: string): number => {
+    if (!year || !month || !day) return 0;
+    const birthDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 && age < 150 ? age : 0;
+  };
+
+  const age = calculateAge(formData.birthYear, formData.birthMonth, formData.birthDay);
 
   // 从 localStorage 加载用户已有信息
   useEffect(() => {
@@ -48,8 +65,10 @@ export default function Onboarding() {
       if (userData.weight && userData.weight !== 0) {
         setFormData(prev => ({ ...prev, weight: userData.weight.toString() }));
       }
-      if (userData.age && userData.age !== 0) {
-        setFormData(prev => ({ ...prev, age: userData.age.toString() }));
+      if (userData.age && userData.age > 0) {
+        // 从年龄反推出生年份（近似值）
+        const birthYear = new Date().getFullYear() - userData.age;
+        setFormData(prev => ({ ...prev, birthYear: birthYear.toString() }));
       }
       if (userData.gender) {
         setFormData(prev => ({ ...prev, gender: userData.gender }));
@@ -84,7 +103,7 @@ export default function Onboarding() {
         ...existingUserData,
         height: parseInt(formData.height) || 175,
         weight: parseInt(formData.weight) || 70,
-        age: parseInt(formData.age) || 28,
+        age: age || 28, // 使用计算出的年龄
         gender: formData.gender,
         activityLevel: formData.activityLevel,
         goal: formData.goal,
@@ -137,13 +156,47 @@ export default function Onboarding() {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">年龄</label>
-        <input
-          type="number"
-          value={formData.age}
-          onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-          placeholder="请输入年龄"
-          className="input-field"
-        />
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <select
+              value={formData.birthYear}
+              onChange={(e) => setFormData(prev => ({ ...prev, birthYear: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">年份</option>
+              {Array.from({ length: 80 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select
+              value={formData.birthMonth}
+              onChange={(e) => setFormData(prev => ({ ...prev, birthMonth: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">月份</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                <option key={month} value={month}>{month}月</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <select
+              value={formData.birthDay}
+              onChange={(e) => setFormData(prev => ({ ...prev, birthDay: e.target.value }))}
+              className="input-field"
+            >
+              <option value="">日期</option>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                <option key={day} value={day}>{day}日</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {age > 0 && (
+          <p className="text-sm text-gray-500 mt-2">当前年龄：<span className="font-medium text-primary">{age}</span> 岁</p>
+        )}
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">性别</label>
