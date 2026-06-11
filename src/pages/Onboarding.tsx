@@ -9,21 +9,28 @@ export default function Onboarding() {
   const navigate = useNavigate();
   
   // 从 URL 路径或 search params 获取 step
-  let currentStep = 1;
-  if (params.step) {
-    currentStep = parseInt(params.step, 10);
-  } else {
-    // 尝试从路径中提取 step
-    const pathParts = location.pathname.split('/');
-    const stepIndex = pathParts.indexOf('step');
-    if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
-      currentStep = parseInt(pathParts[stepIndex + 1], 10);
-    }
-  }
+  // 使用 useMemo 确保每次路由变化都重新计算
+  const [currentStep, setCurrentStep] = useState(1);
   
-  if (isNaN(currentStep) || currentStep < 1 || currentStep > 3) {
-    currentStep = 1;
-  }
+  useEffect(() => {
+    let step = 1;
+    if (params.step) {
+      step = parseInt(params.step, 10);
+    } else {
+      // 尝试从路径中提取 step
+      const pathParts = location.pathname.split('/');
+      const stepIndex = pathParts.indexOf('step');
+      if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
+        step = parseInt(pathParts[stepIndex + 1], 10);
+      }
+    }
+    
+    if (isNaN(step) || step < 1 || step > 3) {
+      step = 1;
+    }
+    
+    setCurrentStep(step);
+  }, [params.step, location.pathname]);
 
   const [formData, setFormData] = useState({
     height: '',
