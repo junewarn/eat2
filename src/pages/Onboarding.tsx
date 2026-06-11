@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, User, Dumbbell, Settings } from 'lucide-react';
 import type { User as UserType } from '../types';
@@ -8,30 +8,21 @@ export default function Onboarding() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // 从 URL 路径或 search params 获取 step
-  // 使用 useMemo 确保每次路由变化都重新计算
-  const [currentStep, setCurrentStep] = useState(1);
-  
-  useEffect(() => {
+  // 从 URL 路径中提取 step，使用 location.key 确保路由变化时重新计算
+  const currentStep = useMemo(() => {
     let step = 1;
-    if (params.step) {
-      step = parseInt(params.step, 10);
-    } else {
-      // 尝试从路径中提取 step
-      const pathParts = location.pathname.split('/');
-      const stepIndex = pathParts.indexOf('step');
-      if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
-        step = parseInt(pathParts[stepIndex + 1], 10);
-      }
+    const pathParts = location.pathname.split('/');
+    const stepIndex = pathParts.indexOf('step');
+    if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
+      step = parseInt(pathParts[stepIndex + 1], 10);
     }
     
     if (isNaN(step) || step < 1 || step > 3) {
       step = 1;
     }
     
-    console.log('onboarding step changed to:', step, 'params:', params.step, 'path:', location.pathname);
-    setCurrentStep(step);
-  }, [params.step, location.pathname, location.key]);
+    return step;
+  }, [location.pathname, location.key]);
 
   const [formData, setFormData] = useState({
     height: '',
