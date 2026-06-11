@@ -22,10 +22,10 @@ function AppRoutes() {
   return (
     <BrowserRouter basename="/eat2">
       <Routes>
-        {/* 个人信息填写 */}
+        {/* 个人信息填写 - 必须在 Home 之前匹配 */}
         <Route path="/onboarding/*" element={<Onboarding />} />
         
-        {/* 首页：显示登录/注册/游客登录 */}
+        {/* 首页：显示登录/注册/游客登录 - 精确匹配 / */}
         <Route path="/" element={<Home />} />
         
         {/* 受保护的页面 */}
@@ -46,7 +46,8 @@ function AppRoutes() {
           element={<ProtectedRoute><Settings /></ProtectedRoute>} 
         />
 
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* 其他所有路由重定向到首页 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
