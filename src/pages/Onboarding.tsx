@@ -383,9 +383,9 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {currentStep === 1 && renderStep1()}
-          {currentStep === 2 && renderStep2()}
-          {currentStep === 3 && renderStep3()}
+          {currentStep === 1 && <div key="step1">{renderStep1()}</div>}
+          {currentStep === 2 && <div key="step2">{renderStep2()}</div>}
+          {currentStep === 3 && <div key="step3">{renderStep3()}</div>}
         </div>
 
         <button
