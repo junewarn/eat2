@@ -10,18 +10,21 @@ export default function Onboarding() {
   
   // 从 URL 路径中提取 step
   const [currentStep, setCurrentStep] = useState(1);
+  const [locationKey, setLocationKey] = useState(location.key);
   
+  // 监听 pathname 变化，更新 locationKey 强制重新挂载 useEffect
   useEffect(() => {
-    let step = 1;
+    setCurrentStep(1);
     const pathParts = location.pathname.split('/');
     const stepIndex = pathParts.indexOf('step');
     if (stepIndex !== -1 && pathParts[stepIndex + 1]) {
-      step = parseInt(pathParts[stepIndex + 1], 10);
+      const parsedStep = parseInt(pathParts[stepIndex + 1], 10);
+      if (!isNaN(parsedStep) && parsedStep >= 1 && parsedStep <= 3) {
+        setCurrentStep(parsedStep);
+      }
     }
-    if (isNaN(step) || step < 1 || step > 3) {
-      step = 1;
-    }
-    setCurrentStep(step);
+    // 强制触发重新渲染
+    setLocationKey(Date.now().toString());
   }, [location.pathname]);
 
   const [formData, setFormData] = useState({
@@ -374,9 +377,11 @@ export default function Onboarding() {
             </div>
           </div>
 
-          {currentStep === 1 && <div key="step1">{renderStep1()}</div>}
-          {currentStep === 2 && <div key="step2">{renderStep2()}</div>}
-          {currentStep === 3 && <div key="step3">{renderStep3()}</div>}
+          <div key={locationKey}>
+            {currentStep === 1 && <div key="step1">{renderStep1()}</div>}
+            {currentStep === 2 && <div key="step2">{renderStep2()}</div>}
+            {currentStep === 3 && <div key="step3">{renderStep3()}</div>}
+          </div>
         </div>
 
         <button
